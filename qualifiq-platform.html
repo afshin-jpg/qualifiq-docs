@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QualifIQ Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0A0A0F;
+  --surface: #111118;
+  --surface2: #1A1A24;
+  --surface3: #222230;
+  --border: #2A2A3A;
+  --border-hover: #3A3A50;
+  --text: #F0F0F5;
+  --text-dim: #9090A8;
+  --text-muted: #606078;
+  --electric: #6C5CE7;
+  --electric-glow: rgba(108,92,231,0.3);
+  --neon: #00F5D4;
+  --neon-glow: rgba(0,245,212,0.25);
+  --hot: #FF6B6B;
+  --hot-glow: rgba(255,107,107,0.25);
+  --amber: #FFD93D;
+  --amber-glow: rgba(255,217,61,0.2);
+  --cyan: #4ECDC4;
+  --blue: #0984E3;
+  --pink: #FD79A8;
+  --lime: #00B894;
+  --sidebar-w: 240px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Sora',-apple-system,sans-serif; background:var(--bg); color:var(--text); overflow:hidden; height:100vh; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* Layout */
+.app { display:flex; height:100vh; }
+.sidebar {
+  width:var(--sidebar-w); background:var(--surface); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; flex-shrink:0; transition:width 0.3s cubic-bezier(0.4,0,0.2,1); overflow:hidden; z-index:20;
+}
+.sidebar.collapsed { --sidebar-w:72px; width:72px; }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+
+/* Sidebar Logo */
+.sidebar-logo {
+  padding:20px; display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid var(--border); min-height:64px;
+}
+.sidebar.collapsed .sidebar-logo { padding:20px 12px; justify-content:center; }
+.logo-icon {
+  width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:16px; font-weight:900; color:#fff; flex-shrink:0;
+}
+.logo-text {
+  font-size:18px; font-weight:800; letter-spacing:-0.5px;
+  background:linear-gradient(135deg,#6C5CE7,#FD79A8);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; white-space:nowrap;
+}
+.sidebar.collapsed .logo-text { display:none; }
+
+/* Role Switcher */
+.role-switcher-wrap { padding:12px 14px; }
+.sidebar.collapsed .role-switcher-wrap { padding:8px; }
+.role-switcher {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  border-radius:12px; cursor:pointer; transition:all 0.2s;
+}
+.sidebar.collapsed .role-switcher { padding:8px; justify-content:center; }
+.role-switcher .role-icon { font-size:18px; flex-shrink:0; }
+.role-switcher .role-info { flex:1; }
+.sidebar.collapsed .role-switcher .role-info,
+.sidebar.collapsed .role-switcher .chevron { display:none; }
+.role-switcher .role-name { font-size:12px; font-weight:700; color:var(--text); white-space:nowrap; }
+.role-switcher .role-sub { font-size:10px; color:var(--text-muted); }
+.role-switcher .chevron { transition:transform 0.2s; color:var(--text-dim); }
+.role-switcher .chevron.open { transform:rotate(180deg); }
+
+.role-menu {
+  margin-top:6px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden; display:none;
+}
+.role-menu.open { display:block; }
+.sidebar.collapsed .role-menu.open {
+  position:absolute; left:72px; top:130px; z-index:50; width:200px;
+}
+.role-menu-item {
+  display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer;
+  border-left:3px solid transparent; transition:all 0.15s;
+}
+.role-menu-item:hover { background:rgba(255,255,255,0.03); }
+.role-menu-item.active { border-left-color:var(--electric); background:rgba(108,92,231,0.08); }
+.role-menu-item span.rm-icon { font-size:16px; }
+.role-menu-item span.rm-label { font-size:13px; font-weight:600; color:var(--text-dim); }
+.role-menu-item.active span.rm-label { color:var(--electric); }
+.role-menu-divider { border-top:1px solid var(--border); }
+.replay-btn {
+  display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; width:100%;
+  background:none; border:none; color:var(--text-dim); font-size:12px; font-weight:600; font-family:inherit;
+}
+.replay-btn:hover { color:var(--text); }
+
+/* Nav Items */
+.nav { flex:1; padding:8px 14px; display:flex; flex-direction:column; gap:2px; }
+.sidebar.collapsed .nav { padding:8px; }
+.nav-item {
+  display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px;
+  cursor:pointer; color:var(--text-dim); transition:all 0.15s; font-size:13px; font-weight:500;
+  white-space:nowrap; border:none; background:none; width:100%; text-align:left; font-family:inherit;
+}
+.sidebar.collapsed .nav-item { padding:10px; justify-content:center; }
+.sidebar.collapsed .nav-item span { display:none; }
+.nav-item:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+.nav-item.active { font-weight:700; }
+.nav-item svg { flex-shrink:0; }
+
+/* Collapse Button */
+.collapse-btn {
+  padding:12px 14px; border-top:1px solid var(--border); display:flex; align-items:center;
+  justify-content:center; gap:8px; cursor:pointer; color:var(--text-muted); font-size:12px;
+  background:none; border-left:none; border-right:none; border-bottom:none; font-family:inherit; width:100%;
+}
+.collapse-btn:hover { color:var(--text-dim); }
+
+/* Top Bar */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 28px; border-bottom:1px solid var(--border); background:var(--surface); min-height:64px;
+}
+.search-bar {
+  display:flex; align-items:center; gap:8px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:10px; padding:0 14px; width:320px;
+}
+.search-bar input {
+  background:none; border:none; outline:none; color:var(--text);
+  font-size:13px; padding:10px 0; width:100%; font-family:inherit;
+}
+.search-bar input::placeholder { color:var(--text-muted); }
+.topbar-right { display:flex; align-items:center; gap:16px; }
+.notif-bell { position:relative; cursor:pointer; color:var(--text-dim); }
+.notif-dot {
+  position:absolute; top:-2px; right:-2px; width:8px; height:8px;
+  border-radius:50%; background:var(--hot); border:2px solid var(--surface);
+}
+.avatar-sm {
+  width:36px; height:36px; border-radius:10px; display:flex; align-items:center;
+  justify-content:center; font-size:14px; cursor:pointer;
+}
+
+/* Content */
+.content { flex:1; overflow:auto; padding:28px; }
+
+/* ── Cards & Components ── */
+.glow-card {
+  background:var(--surface2); border:1px solid var(--border); border-radius:16px;
+  padding:20px; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden;
+}
+.glow-card:hover { border-color:var(--border-hover); }
+.glow-card.clickable { cursor:pointer; }
+.glow-card.clickable:hover { transform:translateY(-2px); }
+
+.stat-card .stat-icon {
+  width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+}
+.stat-card .stat-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.stat-card .stat-change {
+  display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600;
+  padding:3px 8px; border-radius:8px;
+}
+.stat-card .stat-value { font-size:28px; font-weight:800; color:var(--text); letter-spacing:-1px; line-height:1.1; }
+.stat-card .stat-label { font-size:13px; color:var(--text-dim); margin-top:4px; font-weight:500; }
+
+.badge {
+  font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px;
+  letter-spacing:0.3px; text-transform:uppercase; display:inline-block;
+}
+
+/* Grid Layouts */
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.grid-2-asym { display:grid; grid-template-columns:1.4fr 1fr; gap:20px; }
+
+/* Welcome Banner */
+.welcome-banner {
+  background:var(--surface); border:1px solid var(--border); border-radius:20px;
+  padding:28px; margin-bottom:24px; position:relative; overflow:hidden;
+}
+.welcome-banner .glow-orb {
+  position:absolute; top:-40px; right:-40px; width:200px; height:200px;
+  border-radius:50%; pointer-events:none;
+}
+.welcome-banner h2 { font-size:24px; font-weight:800; letter-spacing:-0.5px; margin-bottom:4px; }
+.welcome-banner p { font-size:14px; color:var(--text-dim); }
+
+/* Pipeline */
+.pipeline-row { display:flex; gap:12px; margin-bottom:20px; }
+.pipeline-item { flex:1; }
+.pipeline-item .pi-label {
+  font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:4px;
+}
+.pipeline-item .pi-value { font-size:22px; font-weight:800; color:var(--text); margin-bottom:6px; }
+.pipeline-item .pi-bar { height:4px; background:var(--surface3); border-radius:4px; overflow:hidden; }
+.pipeline-item .pi-bar-fill { height:100%; border-radius:4px; transition:width 0.8s ease; }
+
+/* Event Item */
+.event-item {
+  display:flex; align-items:center; gap:12px; padding:10px 12px;
+  background:var(--surface3); border-radius:10px; cursor:pointer; margin-bottom:8px;
+  transition:background 0.15s;
+}
+.event-item:hover { background:var(--border); }
+.event-item .ev-bar { width:3px; align-self:stretch; border-radius:3px; flex-shrink:0; }
+.event-item .ev-info { flex:1; }
+.event-item .ev-title { font-size:13px; font-weight:600; color:var(--text); }
+.event-item .ev-meta { font-size:11px; color:var(--text-muted); }
+
+/* Lead Row */
+.lead-row {
+  display:flex; align-items:center; gap:16px; padding:14px 18px;
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  cursor:pointer; transition:all 0.2s; margin-bottom:8px;
+}
+.lead-row:hover { border-color:var(--border-hover); transform:translateX(4px); }
+.lead-row.selected { border-color:rgba(108,92,231,0.4); background:rgba(108,92,231,0.04); }
+.lead-check {
+  width:20px; height:20px; border-radius:6px; border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s;
+}
+.lead-row.selected .lead-check { border-color:var(--electric); background:var(--electric); }
+.lead-avatar {
+  width:40px; height:40px; border-radius:12px; display:flex; align-items:center;
+  justify-content:center; font-size:14px; font-weight:800; flex-shrink:0;
+}
+.lead-info { flex:1; min-width:0; }
+.lead-name { font-size:14px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
+.lead-detail { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.lead-meta { text-align:right; margin-right:8px; }
+.lead-meta .lm-top { font-size:12px; color:var(--text-muted); }
+.lead-meta .lm-bot { font-size:12px; color:var(--text-dim); font-weight:600; }
+
+/* Score Ring */
+.score-ring { position:relative; width:40px; height:40px; }
+.score-ring svg { transform:rotate(-90deg); }
+.score-ring .sr-text {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800;
+}
+
+/* Filter tabs */
+.filter-tabs { display:flex; gap:6px; margin-bottom:20px; }
+.filter-tab {
+  padding:8px 16px; border-radius:10px; border:none; font-size:13px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:6px; font-family:inherit;
+  transition:all 0.15s;
+}
+.filter-tab .ft-count {
+  padding:1px 8px; border-radius:6px; font-size:11px; font-weight:700;
+}
+
+/* Action Bar */
+.action-bar {
+  display:flex; align-items:center; gap:12px; padding:12px 18px; margin-bottom:16px;
+  border-radius:12px;
+}
+.action-bar .ab-count { font-size:13px; font-weight:600; }
+.action-bar .ab-spacer { flex:1; }
+.action-bar button, .action-btn {
+  padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; gap:4px; font-family:inherit; border:none;
+}
+
+/* Campaign Card */
+.campaign-card .cc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+.campaign-card .cc-left { display:flex; align-items:center; gap:10px; }
+.campaign-card .cc-icon { font-size:24px; }
+.campaign-card .cc-name { font-size:15px; font-weight:700; color:var(--text); }
+.campaign-card .cc-platform { font-size:12px; color:var(--text-muted); }
+.campaign-card .cc-metrics { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
+.campaign-card .cc-metric-label {
+  font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.8px;
+}
+.campaign-card .cc-metric-value { font-size:16px; font-weight:800; color:var(--text); }
+
+/* Doc Row */
+.doc-row {
+  display:flex; align-items:center; gap:16px; padding:16px 20px;
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  cursor:pointer; transition:all 0.2s; margin-bottom:8px;
+}
+.doc-row:hover { border-color:var(--border-hover); }
+.doc-icon {
+  width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+}
+.doc-info { flex:1; }
+.doc-title { font-size:14px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
+.doc-detail { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.doc-status { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; }
+.doc-action {
+  padding:6px 14px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text-dim); font-size:12px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:4px; font-family:inherit;
+}
+
+/* Calendar */
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-header {
+  text-align:center; font-size:11px; font-weight:700; color:var(--text-muted);
+  padding:8px; text-transform:uppercase; letter-spacing:1px;
+}
+.cal-day {
+  text-align:center; padding:10px 0; border-radius:10px; cursor:pointer;
+  font-size:13px; font-weight:500; color:var(--text-dim); position:relative;
+  transition:background 0.15s;
+}
+.cal-day:hover { background:var(--surface3); }
+.cal-day.today { font-weight:700; color:#fff; }
+.cal-day.has-event { font-weight:700; color:var(--text); }
+.cal-day .cal-dot {
+  position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+  width:4px; height:4px; border-radius:50%;
+}
+
+/* Reminder Banner */
+.reminder-banner {
+  margin-top:20px; padding:16px 20px; border-radius:14px;
+  display:flex; align-items:center; gap:12px;
+}
+.reminder-banner .rb-title { font-size:13px; font-weight:700; }
+.reminder-banner .rb-desc { font-size:12px; color:var(--text-dim); }
+
+/* Settings Card */
+.settings-card {
+  display:flex; align-items:center; gap:14px; cursor:pointer;
+}
+.settings-icon {
+  width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+}
+.settings-card .sc-name { font-size:14px; font-weight:700; color:var(--text); }
+.settings-card .sc-desc { font-size:12px; color:var(--text-dim); }
+
+/* Onboarding Overlay */
+.onboarding-overlay {
+  position:fixed; inset:0; z-index:1000; background:var(--bg);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.onboarding-overlay .ob-glow1 {
+  position:absolute; top:-20%; left:-10%; width:50%; height:50%;
+  border-radius:50%; filter:blur(80px); pointer-events:none;
+}
+.onboarding-overlay .ob-glow2 {
+  position:absolute; bottom:-20%; right:-10%; width:60%; height:60%;
+  border-radius:50%; filter:blur(80px); pointer-events:none;
+  background:radial-gradient(circle,rgba(253,121,168,0.06) 0%,transparent 60%);
+}
+.ob-container { width:100%; max-width:540px; padding:32px; position:relative; z-index:1; }
+.ob-progress { margin-bottom:40px; }
+.ob-progress-top { display:flex; justify-content:space-between; margin-bottom:8px; }
+.ob-progress-top .ob-step { font-size:12px; color:var(--text-dim); font-weight:600; }
+.ob-progress-top .ob-pct { font-size:12px; font-weight:700; }
+.ob-bar { height:4px; background:var(--surface3); border-radius:4px; overflow:hidden; }
+.ob-bar-fill { height:100%; border-radius:4px; transition:width 0.5s cubic-bezier(0.4,0,0.2,1); }
+.ob-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:24px;
+  padding:40px; text-align:center;
+}
+.ob-emoji { font-size:56px; margin-bottom:16px; }
+.ob-title { font-size:26px; font-weight:800; color:var(--text); letter-spacing:-0.5px; margin-bottom:8px; }
+.ob-subtitle { font-size:15px; color:var(--text-dim); margin-bottom:28px; line-height:1.5; }
+.ob-auth-btn {
+  background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+  padding:12px 16px; display:flex; align-items:center; gap:10px; cursor:pointer;
+  margin-bottom:10px; width:100%; font-family:inherit; color:var(--text-dim); font-size:14px;
+}
+.ob-auth-btn:hover { border-color:var(--border-hover); }
+.ob-plan-row { display:flex; gap:10px; margin-bottom:20px; }
+.ob-plan {
+  flex:1; border-radius:14px; padding:16px 12px; cursor:pointer;
+  border:1px solid var(--border); background:var(--surface2); text-align:center; position:relative;
+}
+.ob-plan.popular { border-color:rgba(108,92,231,0.5); background:rgba(108,92,231,0.08); }
+.ob-plan-badge {
+  position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+  padding:2px 10px; border-radius:6px; font-size:9px; font-weight:800; color:#fff;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.ob-plan-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.ob-plan-price { font-size:20px; font-weight:800; }
+.ob-plan-price small { font-size:12px; font-weight:500; }
+.ob-video-box {
+  background:var(--surface2); border-radius:16px; padding:40px; margin-bottom:20px;
+  border:1px solid var(--border); display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+.ob-play-btn {
+  width:56px; height:56px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; cursor:pointer;
+}
+.ob-field { text-align:left; margin-bottom:10px; }
+.ob-field label { font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:4px; display:block; }
+.ob-field .ob-input {
+  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+  padding:10px 14px; color:var(--text-muted); font-size:14px; width:100%;
+}
+.ob-upsell {
+  background:linear-gradient(135deg,rgba(108,92,231,0.08),rgba(253,121,168,0.08));
+  border:1px solid rgba(108,92,231,0.2); border-radius:16px; padding:20px;
+  margin-bottom:20px; text-align:left;
+}
+.ob-upsell-title { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.ob-upsell-title span { font-size:14px; font-weight:700; color:var(--text); }
+.ob-upsell-item { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:13px; color:var(--text-dim); }
+.ob-nav { display:flex; gap:12px; margin-top:24px; justify-content:center; }
+.ob-back {
+  padding:12px 24px; border-radius:12px; border:1px solid var(--border);
+  background:transparent; color:var(--text-dim); font-size:14px; font-weight:600;
+  cursor:pointer; font-family:inherit;
+}
+.ob-next {
+  padding:12px 36px; border-radius:12px; border:none; color:#fff;
+  font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; letter-spacing:0.3px;
+}
+
+/* Franchisor selector (Agency) */
+.franchisor-selector {
+  display:flex; align-items:center; gap:8px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:12px; padding:8px 16px; cursor:pointer;
+}
+.franchisor-selector:hover { border-color:var(--border-hover); }
+
+/* Section header */
+.section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.section-header h2 { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+.section-header p { font-size:13px; color:var(--text-dim); margin-top:2px; }
+.btn-primary {
+  display:flex; align-items:center; gap:6px; padding:10px 20px; border-radius:12px;
+  border:none; color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+}
+.btn-secondary {
+  display:flex; align-items:center; gap:6px; padding:10px 18px; border-radius:12px;
+  border:1px solid var(--border); background:var(--surface2); color:var(--text);
+  font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+}
+.btn-secondary:hover { border-color:var(--border-hover); }
+
+/* Schedule add */
+.schedule-add {
+  margin-top:16px; padding:16px; border-radius:12px; text-align:center; cursor:pointer;
+}
+.schedule-add:hover { opacity:0.8; }
+
+/* SVG Icons (inline) */
+.icon { display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+.fade-in { animation:fadeIn 0.4s ease both; }
+.fade-in-d1 { animation-delay:0.05s; }
+.fade-in-d2 { animation-delay:0.1s; }
+.fade-in-d3 { animation-delay:0.15s; }
+.fade-in-d4 { animation-delay:0.2s; }
+
+/* Responsive (basic) */
+@media(max-width:1200px) { .grid-4 { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:900px) { .grid-2-asym,.grid-2 { grid-template-columns:1fr; } }
+
+/* Hidden utility */
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon" id="logo-icon" style="background:linear-gradient(135deg,#6C5CE7,#a855f7)">Q</div>
+      <span class="logo-text">QualifIQ</span>
+    </div>
+
+    <!-- Role Switcher -->
+    <div class="role-switcher-wrap" style="position:relative;">
+      <div class="role-switcher" id="roleSwitcher" onclick="toggleRoleMenu()">
+        <span class="role-icon" id="roleIcon">🏢</span>
+        <div class="role-info">
+          <div class="role-name" id="roleName">Franchisor</div>
+          <div class="role-sub">Switch Role</div>
+        </div>
+        <svg class="chevron" id="roleChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="role-menu" id="roleMenu">
+        <div class="role-menu-item active" data-role="franchisor" onclick="switchRole('franchisor')">
+          <span class="rm-icon">🏢</span><span class="rm-label">Franchisor</span>
+        </div>
+        <div class="role-menu-item" data-role="agency" onclick="switchRole('agency')">
+          <span class="rm-icon">🤝</span><span class="rm-label">Agency (Broker)</span>
+        </div>
+        <div class="role-menu-item" data-role="franchisee" onclick="switchRole('franchisee')">
+          <span class="rm-icon">👤</span><span class="rm-label">Franchisee / QL</span>
+        </div>
+        <div class="role-menu-divider"></div>
+        <button class="replay-btn" onclick="showOnboarding()">▶ Replay Onboarding</button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav" id="nav"></div>
+
+    <!-- Collapse -->
+    <button class="collapse-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      <span class="collapse-label">Collapse</span>
+    </button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input placeholder="Search anything..." />
+      </div>
+      <div class="topbar-right">
+        <div class="notif-bell">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="avatar-sm" id="topAvatar" style="background:linear-gradient(135deg,#6C5CE7,#a855f7);color:#fff;font-weight:800;">🏢</div>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Onboarding Overlay -->
+<div class="onboarding-overlay hidden" id="onboarding"></div>
+
+<script>
+// ─── State ───
+let currentRole = "franchisor";
+let currentView = "dashboard";
+let onboardingStep = 0;
+
+const ROLES = {
+  franchisor: { primary:"#6C5CE7", gradient:"linear-gradient(135deg,#6C5CE7,#a855f7)", label:"Franchisor", icon:"🏢" },
+  agency: { primary:"#00F5D4", gradient:"linear-gradient(135deg,#00F5D4,#4ECDC4)", label:"Agency (Broker)", icon:"🤝" },
+  franchisee: { primary:"#FF6B6B", gradient:"linear-gradient(135deg,#FF6B6B,#FD79A8)", label:"Franchisee / QL", icon:"👤" },
+};
+
+const NAV_ITEMS = {
+  franchisor: [
+    { key:"dashboard", icon:"layout-dashboard", label:"Dashboard" },
+    { key:"leads", icon:"users", label:"Lead Management" },
+    { key:"campaigns", icon:"megaphone", label:"Campaigns" },
+    { key:"documents", icon:"file-text", label:"Documents" },
+    { key:"calendar", icon:"calendar", label:"Calendar" },
+    { key:"settings", icon:"settings", label:"Settings" },
+  ],
+  agency: [
+    { key:"dashboard", icon:"layout-dashboard", label:"Dashboard" },
+    { key:"leads", icon:"users", label:"Lead Management" },
+    { key:"campaigns", icon:"megaphone", label:"Campaigns" },
+    { key:"documents", icon:"file-text", label:"Documents" },
+    { key:"calendar", icon:"calendar", label:"Calendar" },
+    { key:"settings", icon:"settings", label:"Settings" },
+  ],
+  franchisee: [
+    { key:"dashboard", icon:"layout-dashboard", label:"Dashboard" },
+    { key:"documents", icon:"file-text", label:"Documents" },
+    { key:"calendar", icon:"calendar", label:"Calendar" },
+    { key:"settings", icon:"settings", label:"Settings" },
+  ],
+};
+
+// ─── SVG Icon helper ───
+function icon(name, size=18, color="currentColor") {
+  const icons = {
+    "layout-dashboard": `<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="5" x="14" y="12" rx="1"/><rect width="7" height="9" x="3" y="16" rx="1"/>`,
+    "users": `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+    "megaphone": `<path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>`,
+    "file-text": `<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>`,
+    "calendar": `<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>`,
+    "settings": `<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>`,
+    "check": `<path d="M20 6 9 17l-5-5"/>`,
+    "chevron-right": `<path d="m9 18 6-6-6-6"/>`,
+    "chevron-left": `<path d="m15 18-6-6 6-6"/>`,
+    "upload": `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>`,
+    "user-plus": `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>`,
+    "send": `<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>`,
+    "zap": `<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>`,
+    "check-circle": `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>`,
+    "plus": `<path d="M5 12h14"/><path d="M12 5v14"/>`,
+    "target": `<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>`,
+    "activity": `<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>`,
+    "eye": `<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`,
+    "arrow-up-right": `<path d="M7 7h10v10"/><path d="M7 17 17 7"/>`,
+    "arrow-down-right": `<path d="m7 7 10 10"/><path d="M17 7v10H7"/>`,
+    "shield": `<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>`,
+    "file-signature": `<path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L18 5.5"/><path d="M16 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18h1"/><path d="m11.5 18 3.5-7 3.5 7"/><path d="M13 15h4"/>`,
+    "clock": `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+    "download": `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`,
+    "alert-circle": `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`,
+    "building": `<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>`,
+    "user": `<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+    "credit-card": `<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>`,
+    "bell": `<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>`,
+    "globe": `<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>`,
+    "sparkles": `<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>`,
+    "mail": `<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>`,
+    "briefcase": `<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>`,
+    "play": `<polygon points="6 3 20 12 6 21 6 3"/>`,
+    "chevron-down": `<path d="m6 9 6 6 6-6"/>`,
+  };
+  const paths = icons[name] || "";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+}
+
+// ─── Score Ring SVG ───
+function scoreRing(score, size=40) {
+  const color = score >= 85 ? "var(--lime)" : score >= 70 ? "var(--amber)" : "var(--hot)";
+  const r = (size - 6) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (score / 100) * c;
+  return `<div class="score-ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--surface3)" stroke-width="3"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="3"
+        stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+    </svg>
+    <div class="sr-text" style="color:${color}">${score}</div>
+  </div>`;
+}
+
+// ─── Badge HTML ───
+function badge(text, color) {
+  return `<span class="badge" style="background:${color}18;color:${color}">${text}</span>`;
+}
+
+// ─── Sparkline SVG ───
+function sparkline(data, color, w=100, h=30) {
+  const max = Math.max(...data), min = Math.min(...data), range = max - min || 1;
+  const pts = data.map((v,i) => `${(i/(data.length-1))*w},${h-((v-min)/range)*h}`).join(" ");
+  return `<svg width="${w}" height="${h}" style="overflow:visible">
+    <defs><linearGradient id="sg${color.replace(/[^a-z0-9]/gi,'')}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.3"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="0,${h} ${pts} ${w},${h}" fill="url(#sg${color.replace(/[^a-z0-9]/gi,'')})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ─── Render Navigation ───
+function renderNav() {
+  const nav = document.getElementById("nav");
+  const items = NAV_ITEMS[currentRole];
+  const rc = ROLES[currentRole];
+  nav.innerHTML = items.map(item =>
+    `<button class="nav-item ${currentView===item.key?'active':''}" onclick="navigate('${item.key}')"
+      style="${currentView===item.key ? `background:${rc.primary}12;color:${rc.primary}` : ''}">
+      ${icon(item.icon, 18)} <span>${item.label}</span>
+    </button>`
+  ).join("");
+}
+
+// ─── Navigate ───
+function navigate(view) {
+  currentView = view;
+  renderNav();
+  renderContent();
+}
+
+// ─── Role Switching ───
+function toggleRoleMenu() {
+  document.getElementById("roleMenu").classList.toggle("open");
+  document.getElementById("roleChevron").classList.toggle("open");
+}
+
+function switchRole(role) {
+  currentRole = role;
+  currentView = "dashboard";
+  const rc = ROLES[role];
+
+  document.getElementById("roleIcon").textContent = rc.icon;
+  document.getElementById("roleName").textContent = rc.label;
+  document.getElementById("logo-icon").style.background = rc.gradient;
+  document.getElementById("topAvatar").style.background = rc.gradient;
+  document.getElementById("topAvatar").textContent = rc.icon;
+
+  const switcher = document.getElementById("roleSwitcher");
+  switcher.style.background = `${rc.primary}10`;
+  switcher.style.border = `1px solid ${rc.primary}25`;
+
+  document.querySelectorAll(".role-menu-item").forEach(el => {
+    el.classList.toggle("active", el.dataset.role === role);
+    if(el.dataset.role === role) {
+      el.style.borderLeftColor = rc.primary;
+      el.style.background = `${rc.primary}08`;
+      el.querySelector(".rm-label").style.color = rc.primary;
+    } else {
+      el.style.borderLeftColor = "transparent";
+      el.style.background = "transparent";
+      el.querySelector(".rm-label").style.color = "var(--text-dim)";
+    }
+  });
+
+  toggleRoleMenu();
+  renderNav();
+  renderContent();
+}
+
+// ─── Sidebar Collapse ───
+function toggleSidebar() {
+  const sb = document.getElementById("sidebar");
+  sb.classList.toggle("collapsed");
+  const label = sb.querySelector(".collapse-label");
+  const svg = sb.querySelector(".collapse-btn svg");
+  if(sb.classList.contains("collapsed")) {
+    if(label) label.style.display = "none";
+    svg.innerHTML = `<path d="m9 18 6-6-6-6"/>`;
+  } else {
+    if(label) label.style.display = "";
+    svg.innerHTML = `<path d="m15 18-6-6 6-6"/>`;
+  }
+}
+
+// ─── Stat Card HTML ───
+function statCard(iconName, label, value, color, change, changeType, suffix="") {
+  const changeHtml = change ? `<div class="stat-change" style="color:${changeType==='up'?'var(--lime)':'var(--hot)'};background:${changeType==='up'?'rgba(0,184,148,0.1)':'rgba(255,107,107,0.1)'}">
+    ${changeType==='up' ? icon('arrow-up-right',14) : icon('arrow-down-right',14)} ${change}
+  </div>` : '';
+  return `<div class="glow-card stat-card fade-in">
+    <div class="stat-top">
+      <div class="stat-icon" style="background:${color}18">${icon(iconName,20,color)}</div>
+      ${changeHtml}
+    </div>
+    <div class="stat-value">${value}${suffix}</div>
+    <div class="stat-label">${label}</div>
+  </div>`;
+}
+
+// ─── VIEWS ───
+
+function renderDashboard() {
+  const rc = ROLES[currentRole];
+  const isAgency = currentRole === "agency";
+  const isFranchisee = currentRole === "franchisee";
+
+  const stats = isFranchisee ? [
+    statCard("file-text","Pending Documents",2,"var(--amber)"),
+    statCard("calendar","Upcoming Calls",3,"var(--cyan)"),
+    statCard("check-circle","Completed Steps","7/12","var(--lime)"),
+    statCard("target","Match Score","91%","var(--electric)"),
+  ] : [
+    statCard("users","Total Leads","1,247",rc.primary,"+12%","up"),
+    statCard("check-circle","Qualified Leads",89,"var(--lime)","+8%","up"),
+    statCard("target","Conversion Rate","7.1%","var(--amber)","+0.4%","up"),
+    statCard("file-signature","Agreements Signed",12,"var(--pink)","+3","up"),
+  ];
+
+  const events = isFranchisee ? [
+    { title:"Sign NDA", time:"Due Today", color:"var(--hot)" },
+    { title:"Discovery Call with BurgerPro", time:"10:00 AM · Today", color:"var(--electric)" },
+    { title:"Complete Long Form", time:"Due Feb 20", color:"var(--amber)" },
+    { title:"Upload Financial Documents", time:"Due Feb 22", color:"var(--cyan)" },
+    { title:"Review FDD", time:"14-day period starts Feb 23", color:"var(--pink)" },
+  ] : [
+    { title:"Discovery Call — Sarah Chen", time:"10:00 AM · Today", color:"var(--electric)" },
+    { title:"FDD Review — Priya Patel", time:"2:00 PM · Today", color:"var(--amber)" },
+    { title:"Discovery Day — Emily Watson", time:"9:00 AM · Tomorrow", color:"var(--neon)" },
+    { title:"Onboarding Call — Marcus Johnson", time:"11:30 AM · Feb 20", color:"var(--pink)" },
+    { title:"FDD Signing Deadline — Sarah Chen", time:"EOD · Feb 23", color:"var(--hot)" },
+  ];
+
+  const agencySelector = isAgency ? `
+    <div class="franchisor-selector">
+      ${icon("building",16,rc.primary)}
+      <span style="font-size:13px;font-weight:600;color:var(--text)">BurgerPro Inc.</span>
+      ${icon("chevron-down",14,"var(--text-dim)")}
+    </div>` : '';
+
+  const pipeline = !isFranchisee ? `
+    <div class="glow-card fade-in fade-in-d3" style="flex:1.4">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="font-size:16px;font-weight:700">Lead Pipeline</h3>
+        <div style="display:flex;gap:6px">
+          <button style="padding:4px 12px;border-radius:8px;border:none;font-size:11px;font-weight:700;background:var(--surface3);color:var(--text-dim);cursor:pointer">7D</button>
+          <button style="padding:4px 12px;border-radius:8px;border:none;font-size:11px;font-weight:700;background:${rc.primary};color:#fff;cursor:pointer">30D</button>
+          <button style="padding:4px 12px;border-radius:8px;border:none;font-size:11px;font-weight:700;background:var(--surface3);color:var(--text-dim);cursor:pointer">90D</button>
+        </div>
+      </div>
+      <div class="pipeline-row">
+        ${[{l:"Cold",v:423,c:"var(--text-dim)",b:100},{l:"Vetted",v:187,c:"var(--cyan)",b:44},{l:"Qualified",v:89,c:"var(--amber)",b:21},{l:"Signed",v:12,c:"var(--lime)",b:3}].map(s=>`
+          <div class="pipeline-item">
+            <div class="pi-label">${s.l}</div>
+            <div class="pi-value">${s.v}</div>
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:${s.b}%;background:${s.c}"></div></div>
+          </div>`).join("")}
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        ${sparkline([12,18,15,25,22,35,30,42,38,45,52,48],rc.primary,200,40)}
+        ${sparkline([5,8,6,12,10,15,18,14,22,19,25,28],"var(--lime)",200,40)}
+      </div>
+    </div>` : '';
+
+  return `
+    <div class="welcome-banner fade-in">
+      <div class="glow-orb" style="background:radial-gradient(circle,${rc.primary}10 0%,transparent 60%)"></div>
+      <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h2>${isFranchisee?'Welcome back, Sarah':isAgency?'Good morning, Agency':'Good morning, Franchise Co'}</h2>
+          <p>${isFranchisee?'You have 2 pending documents and 1 upcoming call today':isAgency?'You have 3 franchisors active this week':'You have 5 new qualified leads this week'}</p>
+        </div>
+        ${agencySelector}
+      </div>
+    </div>
+    <div class="grid-4 fade-in fade-in-d1" style="margin-bottom:24px">${stats.join("")}</div>
+    <div style="display:flex;gap:20px">
+      ${pipeline}
+      <div class="glow-card fade-in fade-in-d4" style="${isFranchisee?'flex:1':'flex:1'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:700">${isFranchisee?'Your Action Items':'Upcoming Events'}</h3>
+          ${icon("calendar",18,"var(--text-dim)")}
+        </div>
+        ${events.map(ev=>`
+          <div class="event-item">
+            <div class="ev-bar" style="background:${ev.color}"></div>
+            <div class="ev-info">
+              <div class="ev-title">${ev.title}</div>
+              <div class="ev-meta">${ev.time}</div>
+            </div>
+            ${icon("chevron-right",16,"var(--text-muted)")}
+          </div>`).join("")}
+      </div>
+    </div>`;
+}
+
+function renderLeads() {
+  const rc = ROLES[currentRole];
+  const leads = [
+    {id:1,name:"Sarah Chen",company:"Chen Enterprises",loc:"San Francisco, CA",score:94,status:"qualified",avatar:"SC",inv:"$250K-500K",ind:"Food & Beverage"},
+    {id:2,name:"Marcus Johnson",company:"MJ Holdings",loc:"Austin, TX",score:87,status:"vetted",avatar:"MJ",inv:"$100K-250K",ind:"Fitness"},
+    {id:3,name:"Priya Patel",company:"Patel Group",loc:"Chicago, IL",score:91,status:"qualified",avatar:"PP",inv:"$500K-1M",ind:"Healthcare"},
+    {id:4,name:"David Kim",company:"Kim Ventures",loc:"Seattle, WA",score:76,status:"cold",avatar:"DK",inv:"$100K-250K",ind:"Technology"},
+    {id:5,name:"Lisa Thompson",company:"Thompson LLC",loc:"Denver, CO",score:82,status:"vetted",avatar:"LT",inv:"$250K-500K",ind:"Retail"},
+    {id:6,name:"Alex Rivera",company:"Rivera Capital",loc:"Miami, FL",score:69,status:"cold",avatar:"AR",inv:"$50K-100K",ind:"Food & Beverage"},
+    {id:7,name:"Emily Watson",company:"Watson Inc",loc:"New York, NY",score:88,status:"qualified",avatar:"EW",inv:"$500K-1M",ind:"Education"},
+    {id:8,name:"James Okafor",company:"Okafor Systems",loc:"Atlanta, GA",score:73,status:"cold",avatar:"JO",inv:"$100K-250K",ind:"Technology"},
+  ];
+
+  const statusColors = {cold:"var(--text-dim)",vetted:"var(--cyan)",qualified:"var(--lime)"};
+  const counts = {all:leads.length,cold:leads.filter(l=>l.status==="cold").length,vetted:leads.filter(l=>l.status==="vetted").length,qualified:leads.filter(l=>l.status==="qualified").length};
+
+  return `
+    <div class="section-header fade-in">
+      <div><h2>Lead Management</h2><p>Manage your pipeline from cold leads to qualified prospects</p></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-secondary">${icon("upload",15)} Import Leads</button>
+        <button class="btn-primary" style="background:${rc.gradient};box-shadow:0 4px 15px ${rc.primary}30">${icon("user-plus",15,"#fff")} Add Lead</button>
+      </div>
+    </div>
+    <div class="filter-tabs fade-in fade-in-d1">
+      ${[{k:"all",l:"All Leads"},{k:"cold",l:"Cold"},{k:"vetted",l:"Vetted"},{k:"qualified",l:"Qualified"}].map((f,i)=>`
+        <button class="filter-tab" onclick="filterLeads('${f.k}')" style="background:${i===0?rc.primary:'var(--surface2)'};color:${i===0?'#fff':'var(--text-dim)'}">
+          ${f.l} <span class="ft-count" style="background:${i===0?'rgba(255,255,255,0.2)':'var(--surface3)'}">${counts[f.k]}</span>
+        </button>`).join("")}
+      <div style="flex:1"></div>
+      <div class="search-bar" style="width:200px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input placeholder="Search leads..." />
+      </div>
+    </div>
+    <div class="fade-in fade-in-d2">
+      ${leads.map(l=>`
+        <div class="lead-row" onclick="this.classList.toggle('selected')">
+          <div class="lead-check">${icon("check",12,"#fff")}</div>
+          <div class="lead-avatar" style="background:${statusColors[l.status]}18;color:${statusColors[l.status]}">${l.avatar}</div>
+          <div class="lead-info">
+            <div class="lead-name">${l.name} ${badge(l.status,statusColors[l.status])} ${l.status==='vetted'?icon("check-circle",14,"var(--cyan)"):''}</div>
+            <div class="lead-detail">${l.company} · ${l.loc}</div>
+          </div>
+          <div class="lead-meta"><div class="lm-top">${l.ind}</div><div class="lm-bot">${l.inv}</div></div>
+          ${scoreRing(l.score)}
+          ${icon("chevron-right",18,"var(--text-muted)")}
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderCampaigns() {
+  const rc = ROLES[currentRole];
+  const campaigns = [
+    {name:"Q1 Franchise Owners",platform:"LinkedIn",icon:"🔗",status:"active",reach:"12,400",leads:34,spend:"$2,100",ctr:"3.2%"},
+    {name:"Instagram Growth Push",platform:"Instagram",icon:"📸",status:"active",reach:"45,200",leads:89,spend:"$3,400",ctr:"4.1%"},
+    {name:"Facebook Local Targeting",platform:"Facebook",icon:"📘",status:"paused",reach:"8,900",leads:12,spend:"$890",ctr:"1.8%"},
+    {name:"TikTok Awareness",platform:"TikTok",icon:"🎵",status:"draft",reach:"0",leads:0,spend:"$0",ctr:"0%"},
+  ];
+  const sColors = {active:"var(--lime)",paused:"var(--amber)",draft:"var(--text-muted)"};
+
+  return `
+    <div class="section-header fade-in">
+      <div><h2>Campaigns</h2><p>Run social media campaigns to generate franchise leads</p></div>
+      <button class="btn-primary" style="background:${rc.gradient};box-shadow:0 4px 15px ${rc.primary}30">${icon("plus",16,"#fff")} New Campaign</button>
+    </div>
+    <div class="grid-4 fade-in fade-in-d1" style="margin-bottom:24px">
+      ${statCard("megaphone","Active Campaigns",2,"var(--lime)")}
+      ${statCard("eye","Total Reach","66,500","var(--electric)","+24%","up")}
+      ${statCard("user-plus","Leads Generated",135,"var(--cyan)","+18%","up")}
+      ${statCard("activity","Avg. CTR","3.4%","var(--amber)","+0.6%","up")}
+    </div>
+    <div class="grid-2 fade-in fade-in-d2">
+      ${campaigns.map(c=>`
+        <div class="glow-card campaign-card clickable">
+          <div class="cc-header">
+            <div class="cc-left">
+              <span class="cc-icon">${c.icon}</span>
+              <div><div class="cc-name">${c.name}</div><div class="cc-platform">${c.platform}</div></div>
+            </div>
+            ${badge(c.status,sColors[c.status])}
+          </div>
+          <div class="cc-metrics">
+            ${[{l:"Reach",v:c.reach},{l:"Leads",v:c.leads},{l:"Spend",v:c.spend},{l:"CTR",v:c.ctr}].map(m=>`
+              <div><div class="cc-metric-label">${m.l}</div><div class="cc-metric-value">${m.v}</div></div>`).join("")}
+          </div>
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderDocuments() {
+  const rc = ROLES[currentRole];
+  const isFranchisee = currentRole === "franchisee";
+  const docs = [
+    {name:"NDA — Sarah Chen",type:"NDA",status:"signed",date:"2025-02-10",lead:"Sarah Chen"},
+    {name:"FDD — Sarah Chen",type:"FDD",status:"pending",date:"2025-02-12",lead:"Sarah Chen",days:11},
+    {name:"NDA — Priya Patel",type:"NDA",status:"sent",date:"2025-02-15",lead:"Priya Patel"},
+    {name:"NDA — Emily Watson",type:"NDA",status:"signed",date:"2025-02-08",lead:"Emily Watson"},
+    {name:"FDD — Emily Watson",type:"FDD",status:"signed",date:"2025-02-09",lead:"Emily Watson"},
+    {name:"FA — Emily Watson",type:"FA",status:"pending",date:"2025-02-14",lead:"Emily Watson"},
+  ];
+  const typeColors = {NDA:"var(--electric)",FDD:"var(--amber)",FA:"var(--lime)"};
+  const statusMap = {signed:{icon:"check-circle",color:"var(--lime)",label:"Signed"},pending:{icon:"clock",color:"var(--amber)",label:"Pending"},sent:{icon:"send",color:"var(--cyan)",label:"Sent"}};
+
+  return `
+    <div class="section-header fade-in">
+      <div><h2>Documents</h2><p>${isFranchisee?'Your documents and agreements':'Manage NDAs, FDDs, and Franchise Agreements'}</p></div>
+      ${!isFranchisee?`<button class="btn-primary" style="background:${rc.gradient}">${icon("upload",16,"#fff")} Upload Document</button>`:''}
+    </div>
+    <div class="grid-3 fade-in fade-in-d1" style="margin-bottom:24px">
+      ${[{t:"NDA",i:"shield",n:"Non-Disclosure",c:3},{t:"FDD",i:"file-text",n:"Franchise Disclosure",c:2},{t:"FA",i:"file-signature",n:"Franchise Agreement",c:1}].map(d=>`
+        <div class="glow-card" style="text-align:center;padding:16px">
+          ${icon(d.i,24,typeColors[d.t])}
+          <div style="font-size:20px;font-weight:800;color:var(--text);margin-top:8px">${d.c}</div>
+          <div style="font-size:12px;color:var(--text-dim);font-weight:600">${d.n}</div>
+        </div>`).join("")}
+    </div>
+    <div class="fade-in fade-in-d2">
+      ${docs.map(d=>{
+        const s=statusMap[d.status];
+        return `<div class="doc-row">
+          <div class="doc-icon" style="background:${typeColors[d.type]}15">${icon("file-text",20,typeColors[d.type])}</div>
+          <div class="doc-info">
+            <div class="doc-title">${d.name} ${badge(d.type,typeColors[d.type])}</div>
+            <div class="doc-detail">${d.lead} · ${d.date}${d.days?` <span style="color:var(--amber);font-weight:600">· ${d.days} days remaining</span>`:''}</div>
+          </div>
+          <div class="doc-status" style="color:${s.color}">${icon(s.icon,16,s.color)} ${s.label}</div>
+          <button class="doc-action">${d.status==='pending'||d.status==='sent'?icon("eye",13)+" "+(isFranchisee?"Sign":"View"):icon("download",13)+" Download"}</button>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="reminder-banner fade-in fade-in-d3" style="background:rgba(255,217,61,0.05);border:1px solid rgba(255,217,61,0.15)">
+      ${icon("alert-circle",20,"var(--amber)")}
+      <div><div class="rb-title" style="color:var(--amber)">FDD Reminder Active</div>
+      <div class="rb-desc">Automated reminders will be sent on days 3, 7, 10, and 14 for pending FDD signatures.</div></div>
+    </div>`;
+}
+
+function renderCalendar() {
+  const rc = ROLES[currentRole];
+  const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const eventDays = {3:"var(--electric)",7:"var(--amber)",10:"var(--lime)",14:"var(--hot)",17:rc.primary,18:"var(--neon)",20:"var(--pink)",23:"var(--amber)",25:"var(--cyan)"};
+  const events = [
+    {title:"Discovery Call — Sarah Chen",time:"10:00 AM · Today",color:"var(--electric)"},
+    {title:"FDD Review — Priya Patel",time:"2:00 PM · Today",color:"var(--amber)"},
+    {title:"Discovery Day — Emily Watson",time:"9:00 AM · Tomorrow",color:"var(--neon)"},
+    {title:"Onboarding Call — Marcus Johnson",time:"11:30 AM · Feb 20",color:"var(--pink)"},
+    {title:"FDD Signing Deadline — Sarah Chen",time:"EOD · Feb 23",color:"var(--hot)"},
+  ];
+
+  let calDays = '';
+  for(let i=0;i<6;i++) calDays += '<div></div>';
+  for(let d=1;d<=28;d++) {
+    const isToday = d===17;
+    const hasEvent = eventDays[d] && d!==17;
+    calDays += `<div class="cal-day ${isToday?'today':''} ${hasEvent?'has-event':''}"
+      style="${isToday?`background:${rc.primary};color:#fff;font-weight:700`:''}${hasEvent?`background:${eventDays[d]}12`:''}">${d}
+      ${hasEvent?`<div class="cal-dot" style="background:${eventDays[d]}"></div>`:''}</div>`;
+  }
+
+  return `
+    <div class="section-header fade-in">
+      <div><h2>Calendar</h2><p>Discovery Calls, FDD reviews, and Discovery Days</p></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        ${icon("chevron-left",20,"var(--text-dim)")}
+        <span style="font-size:15px;font-weight:700">February 2026</span>
+        ${icon("chevron-right",20,"var(--text-dim)")}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px">
+      <div class="glow-card fade-in fade-in-d1">
+        <div class="cal-grid">
+          ${days.map(d=>`<div class="cal-header">${d}</div>`).join("")}
+          ${calDays}
+        </div>
+      </div>
+      <div class="fade-in fade-in-d2">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">Upcoming Events</div>
+        ${events.map(ev=>`
+          <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;border-left:3px solid ${ev.color};margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">${ev.title}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${ev.time}</div>
+          </div>`).join("")}
+        <div class="schedule-add" style="background:${rc.primary}08;border:1px dashed ${rc.primary}30">
+          ${icon("plus",20,rc.primary)}
+          <div style="font-size:13px;font-weight:600;color:${rc.primary};margin-top:4px">Schedule New Event</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderSettings() {
+  const rc = ROLES[currentRole];
+  const items = [
+    {i:"user",l:"Profile",d:"Update your personal information"},
+    {i:"building",l:"Company",d:"Manage company details and branding"},
+    {i:"credit-card",l:"Billing",d:"Manage subscription and payments"},
+    {i:"bell",l:"Notifications",d:"Email and push notification preferences"},
+    {i:"shield",l:"Security",d:"Password, 2FA, and session management"},
+    {i:"globe",l:"Integrations",d:"Connect CRM, email, and calendar"},
+  ];
+  return `
+    <h2 class="fade-in" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:24px">Settings</h2>
+    <div class="grid-2 fade-in fade-in-d1">
+      ${items.map(s=>`
+        <div class="glow-card clickable settings-card">
+          <div class="settings-icon" style="background:${rc.primary}15">${icon(s.i,20,rc.primary)}</div>
+          <div style="flex:1"><div class="sc-name">${s.l}</div><div class="sc-desc">${s.d}</div></div>
+          ${icon("chevron-right",18,"var(--text-muted)")}
+        </div>`).join("")}
+    </div>`;
+}
+
+// ─── Render Content ───
+function renderContent() {
+  const content = document.getElementById("content");
+  switch(currentView) {
+    case "dashboard": content.innerHTML = renderDashboard(); break;
+    case "leads": content.innerHTML = renderLeads(); break;
+    case "campaigns": content.innerHTML = renderCampaigns(); break;
+    case "documents": content.innerHTML = renderDocuments(); break;
+    case "calendar": content.innerHTML = renderCalendar(); break;
+    case "settings": content.innerHTML = renderSettings(); break;
+    default: content.innerHTML = renderDashboard();
+  }
+}
+
+// ─── Onboarding ───
+function showOnboarding() {
+  onboardingStep = 0;
+  document.getElementById("roleMenu").classList.remove("open");
+  document.getElementById("onboarding").classList.remove("hidden");
+  renderOnboarding();
+}
+
+function hideOnboarding() {
+  document.getElementById("onboarding").classList.add("hidden");
+}
+
+function obNext() {
+  const steps = getObSteps();
+  if(onboardingStep < steps.length - 1) { onboardingStep++; renderOnboarding(); }
+  else hideOnboarding();
+}
+
+function obBack() {
+  if(onboardingStep > 0) { onboardingStep--; renderOnboarding(); }
+}
+
+function getObSteps() {
+  if(currentRole === "franchisor") return [
+    {t:"Welcome to QualifIQ",s:"Let's get your franchise set up in minutes",e:"🚀",f:null},
+    {t:"Sign Up",s:"Create your account",e:"🔐",f:"auth"},
+    {t:"Choose Your Plan",s:"Select the tier that fits your needs",e:"💎",f:"plan"},
+    {t:"Watch Tutorial",s:"A quick overview of your new superpowers",e:"🎬",f:"video"},
+    {t:"Company Details",s:"Tell us about your franchise",e:"🏢",f:"company"},
+    {t:"You're All Set!",s:"Welcome aboard — let's find your next franchisee",e:"🎉",f:null},
+  ];
+  if(currentRole === "agency") return [
+    {t:"Welcome, Agency Partner!",s:"Manage multiple franchisors from one platform",e:"🚀",f:null},
+    {t:"Sign Up",s:"Create your agency account",e:"🔐",f:"auth"},
+    {t:"Choose Your Plan",s:"Plans scale with your franchisor count",e:"💎",f:"plan"},
+    {t:"Watch Tutorial",s:"Learn the multi-franchisor workflow",e:"🎬",f:"video"},
+    {t:"Agency & Franchisor Details",s:"Set up your agency and add your franchisors",e:"🤝",f:"company"},
+    {t:"Ready to Represent!",s:"Select a franchisor and start generating leads",e:"🎉",f:null},
+  ];
+  return [
+    {t:"You've Been Invited!",s:"A franchisor wants to connect with you",e:"✉️",f:null},
+    {t:"Create Your Account",s:"Sign up to get started",e:"🔐",f:"auth"},
+    {t:"Quick Tutorial",s:"See how QualifIQ works for you",e:"🎬",f:"video"},
+    {t:"Tell Us About You",s:"Complete your profile",e:"👤",f:"company"},
+    {t:"Optional: Unlock Premium",s:"Get AI features and marketplace access",e:"✨",f:"upsell"},
+    {t:"Let's Get Started!",s:"Your Discovery Call awaits",e:"🎉",f:null},
+  ];
+}
+
+function renderOnboarding() {
+  const rc = ROLES[currentRole];
+  const steps = getObSteps();
+  const step = steps[onboardingStep];
+  const progress = (onboardingStep / (steps.length - 1)) * 100;
+
+  let fieldHtml = '';
+  if(step.f === "auth") {
+    fieldHtml = `
+      <button class="ob-auth-btn">${icon("mail",18,"var(--text-dim)")} Continue with Email</button>
+      <button class="ob-auth-btn">${icon("globe",18,"#DB4437")} Continue with Google</button>
+      <button class="ob-auth-btn">${icon("briefcase",18,"#0077B5")} Continue with LinkedIn</button>`;
+  } else if(step.f === "plan") {
+    fieldHtml = `<div class="ob-plan-row">
+      ${["Starter","Growth","Enterprise"].map((p,i)=>`
+        <div class="ob-plan ${i===1?'popular':''}">
+          ${i===1?`<div class="ob-plan-badge" style="background:${rc.gradient}">Popular</div>`:''}
+          <div class="ob-plan-name">${p}</div>
+          <div class="ob-plan-price" style="color:${i===1?rc.primary:'var(--text-dim)'}">$${[49,149,399][i]}<small>/mo</small></div>
+        </div>`).join("")}
+    </div>`;
+  } else if(step.f === "video") {
+    fieldHtml = `<div class="ob-video-box">
+      <div class="ob-play-btn" style="background:${rc.gradient};box-shadow:0 0 20px ${rc.primary}40">
+        ${icon("play",24,"#fff")}
+      </div>
+      <span style="font-size:13px;color:var(--text-dim)">Watch 2-min tutorial</span>
+    </div>`;
+  } else if(step.f === "company") {
+    fieldHtml = ["Company Name","Industry","Number of Locations","Annual Revenue Range"].map(f=>
+      `<div class="ob-field"><label>${f}</label><div class="ob-input">Enter ${f.toLowerCase()}...</div></div>`
+    ).join("");
+  } else if(step.f === "upsell") {
+    fieldHtml = `<div class="ob-upsell">
+      <div class="ob-upsell-title">${icon("sparkles",18,"var(--amber)")} <span>Premium Access — $29/mo</span></div>
+      ${["AI-powered FDD analysis","Franchise marketplace access","Advanced analytics","Priority support"].map(f=>
+        `<div class="ob-upsell-item">${icon("check",14,"var(--lime)")} ${f}</div>`
+      ).join("")}
+    </div>`;
+  }
+
+  document.getElementById("onboarding").innerHTML = `
+    <div class="ob-glow1" style="background:radial-gradient(circle,${rc.primary}12 0%,transparent 60%)"></div>
+    <div class="ob-glow2"></div>
+    <div class="ob-container">
+      <div class="ob-progress">
+        <div class="ob-progress-top">
+          <span class="ob-step">Step ${onboardingStep+1} of ${steps.length}</span>
+          <span class="ob-pct" style="color:${rc.primary}">${Math.round(progress)}%</span>
+        </div>
+        <div class="ob-bar"><div class="ob-bar-fill" style="width:${progress}%;background:${rc.gradient}"></div></div>
+      </div>
+      <div class="ob-card" style="box-shadow:0 0 60px ${rc.primary}10">
+        <div class="ob-emoji">${step.e}</div>
+        <div class="ob-title">${step.t}</div>
+        <div class="ob-subtitle">${step.s}</div>
+        ${fieldHtml}
+      </div>
+      <div class="ob-nav">
+        ${onboardingStep > 0 ? '<button class="ob-back" onclick="obBack()">Back</button>' : ''}
+        <button class="ob-next" onclick="obNext()" style="background:${rc.gradient};box-shadow:0 4px 20px ${rc.primary}40">
+          ${onboardingStep === steps.length - 1 ? 'Enter Platform →' : 'Continue'}
+        </button>
+      </div>
+    </div>`;
+}
+
+// ─── Init ───
+function init() {
+  renderNav();
+  renderContent();
+}
+init();
+</script>
+</body>
+</html>

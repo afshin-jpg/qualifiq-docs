@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QualifIQ — User Journey Flow Schema</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #0e0e12;
+    --surface: #18181f;
+    --surface-2: #22222c;
+    --border: #2a2a36;
+    --border-active: #4a4a5a;
+    --text: #e8e8ed;
+    --text-dim: #8888a0;
+    --text-muted: #55556a;
+    --franchisor: #6c5ce7;
+    --franchisor-dim: rgba(108,92,231,0.12);
+    --franchisor-glow: rgba(108,92,231,0.25);
+    --agency: #00b894;
+    --agency-dim: rgba(0,184,148,0.12);
+    --agency-glow: rgba(0,184,148,0.25);
+    --franchisee: #e17055;
+    --franchisee-dim: rgba(225,112,85,0.12);
+    --franchisee-glow: rgba(225,112,85,0.25);
+    --platform: #0984e3;
+    --platform-dim: rgba(9,132,227,0.12);
+    --decision: #fdcb6e;
+    --decision-dim: rgba(253,203,110,0.12);
+    --connector: #3a3a4a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(14,14,18,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-divider { width: 1px; height: 24px; background: var(--border); }
+  .header-title { font-size: 14px; color: var(--text-dim); font-weight: 500; }
+  .header-badge {
+    font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 100px;
+    background: rgba(253,203,110,0.1); color: #fdcb6e; border: 1px solid rgba(253,203,110,0.2);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .tabs {
+    display: flex; gap: 4px; padding: 16px 32px 0; background: var(--bg);
+    position: sticky; top: 57px; z-index: 90;
+  }
+  .tab {
+    padding: 10px 20px; font-size: 13px; font-weight: 600;
+    border: 1px solid transparent; border-bottom: none; border-radius: 10px 10px 0 0;
+    cursor: pointer; background: transparent; color: var(--text-dim); transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .tab .tab-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 8px; vertical-align: middle;
+  }
+  .tab[data-tab="franchisor"] .tab-dot { background: var(--franchisor); }
+  .tab[data-tab="agency"] .tab-dot { background: var(--agency); }
+  .tab[data-tab="franchisee"] .tab-dot { background: var(--franchisee); }
+
+  .journey-panel {
+    background: var(--surface); border: 1px solid var(--border); border-top: none;
+    margin: 0 32px 32px; border-radius: 0 0 16px 16px; padding: 32px;
+    min-height: 60vh; display: none;
+  }
+  .journey-panel.active { display: block; }
+
+  .journey-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+    padding-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .journey-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .journey-meta h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .journey-meta p { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .phase-group { margin-bottom: 8px; }
+  .phase-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;
+  }
+  .phase-steps { display: flex; flex-direction: column; gap: 0; }
+
+  .step-row { display: flex; align-items: stretch; }
+  .step-connector {
+    width: 48px; display: flex; flex-direction: column; align-items: center;
+    position: relative; flex-shrink: 0;
+  }
+  .step-connector .dot {
+    width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--connector);
+    background: var(--surface); z-index: 2; margin-top: 18px; flex-shrink: 0; transition: all 0.2s;
+  }
+  .step-connector .line { width: 2px; flex: 1; background: var(--connector); }
+  .step-row:last-child .step-connector .line { display: none; }
+  .step-row:hover .step-connector .dot { transform: scale(1.3); }
+
+  .step-card {
+    flex: 1; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 8px;
+    transition: all 0.2s; cursor: default; position: relative; overflow: hidden;
+  }
+  .step-card:hover { border-color: var(--border-active); transform: translateX(4px); }
+  .step-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+  .step-card .step-number { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 4px; }
+  .step-card .step-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.45; margin-bottom: 6px; }
+  .step-card .step-desc { font-size: 12px; color: var(--text-dim); line-height: 1.55; }
+
+  .step-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .step-tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.3px; }
+
+  .tag-user { background: var(--franchisor-dim); color: var(--franchisor); }
+  .tag-platform { background: var(--platform-dim); color: var(--platform); }
+  .tag-decision { background: var(--decision-dim); color: #f0c040; }
+  .tag-action { background: rgba(0,184,148,0.1); color: #00b894; }
+  .tag-email { background: rgba(225,112,85,0.1); color: #e17055; }
+  .tag-agency { background: var(--agency-dim); color: var(--agency); }
+  .tag-franchisee-tag { background: var(--franchisee-dim); color: var(--franchisee); }
+
+  .journey-franchisor .step-card::before { background: var(--franchisor); }
+  .journey-franchisor .step-connector .dot { border-color: var(--franchisor); }
+  .journey-franchisor .step-row:hover .step-connector .dot { background: var(--franchisor); box-shadow: 0 0 10px var(--franchisor-glow); }
+
+  .journey-agency .step-card::before { background: var(--agency); }
+  .journey-agency .step-connector .dot { border-color: var(--agency); }
+  .journey-agency .step-row:hover .step-connector .dot { background: var(--agency); box-shadow: 0 0 10px var(--agency-glow); }
+
+  .journey-franchisee .step-card::before { background: var(--franchisee); }
+  .journey-franchisee .step-connector .dot { border-color: var(--franchisee); }
+  .journey-franchisee .step-row:hover .step-connector .dot { background: var(--franchisee); box-shadow: 0 0 10px var(--franchisee-glow); }
+
+  .step-card.decision { background: var(--decision-dim); border-color: rgba(253,203,110,0.25); }
+  .step-card.decision::before { background: var(--decision); }
+  .step-card.branch { border-style: dashed; border-color: var(--border-active); background: rgba(34,34,44,0.5); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 16px; padding: 20px 32px; margin: 0 32px 24px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  }
+  .legend-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); width: 100%; margin-bottom: 4px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 4px; }
+
+  .watermark {
+    position: fixed; bottom: 20px; right: 20px; font-size: 10px; color: var(--text-muted);
+    opacity: 0.5; letter-spacing: 0.5px; pointer-events: none; z-index: 999;
+  }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .final-glow-franchisor { border-color: var(--franchisor) !important; box-shadow: 0 0 20px var(--franchisor-glow); }
+  .final-glow-agency { border-color: var(--agency) !important; box-shadow: 0 0 20px var(--agency-glow); }
+  .final-glow-franchisee { border-color: var(--franchisee) !important; box-shadow: 0 0 20px var(--franchisee-glow); }
+</style>
+</head>
+<body>
+
+<div class="watermark">CONFIDENTIAL — NOT FOR DISTRIBUTION OR MACHINE LEARNING</div>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">QualifIQ</div>
+    <div class="header-divider"></div>
+    <div class="header-title">User Journey Flow Schema</div>
+  </div>
+  <div class="header-badge">Confidential</div>
+</div>
+
+<div style="padding-top:24px"></div>
+<div class="legend">
+  <div class="legend-title">Tag Legend</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--franchisor)"></div> User Action</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--platform)"></div> Platform / System</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--decision)"></div> Decision Point</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#00b894"></div> Key Action</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#e17055"></div> Email / Notification</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--agency)"></div> Agency-specific</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--franchisee)"></div> Franchisee-specific</div>
+  <div class="legend-item"><div style="width:20px;height:0;border-top:2px dashed var(--border-active)"></div> Alternative Path</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="franchisor" onclick="switchTab('franchisor')"><span class="tab-dot"></span>Franchisor Journey</div>
+  <div class="tab" data-tab="agency" onclick="switchTab('agency')"><span class="tab-dot"></span>Agency (Broker) Journey</div>
+  <div class="tab" data-tab="franchisee" onclick="switchTab('franchisee')"><span class="tab-dot"></span>Franchisee / QL Journey</div>
+</div>
+
+<!-- FRANCHISOR JOURNEY -->
+<div class="journey-panel active" id="panel-franchisor">
+  <div class="journey-header">
+    <div class="journey-icon" style="background:var(--franchisor-dim);">&#x1F3E2;</div>
+    <div class="journey-meta">
+      <h2>Franchisor Journey</h2>
+      <p>Lead to Sign — Full lifecycle from website visit through Franchise Agreement execution</p>
+    </div>
+  </div>
+  <div class="flow journey-franchisor">
+    <div class="phase-group">
+      <div class="phase-label">Phase 1 — Acquisition &amp; Onboarding</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 01</div><div class="step-title">Land on QualifIQ Website</div><div class="step-desc">Franchisor discovers QualifIQ, learns about the platform value proposition and reviews pricing plans.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 02</div><div class="step-title">Sign Up &amp; Authenticate</div><div class="step-desc">Clicks sign-up button, directed to sign-up page. Authenticates via Email, Google, or LinkedIn.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-platform">Auth Flow</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 03</div><div class="step-title">Select Pricing Tier &amp; Payment</div><div class="step-desc">Prompted to select a pricing tier. Completes payment. Redirected to tutorial video page upon success.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-platform">Payment</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 04</div><div class="step-title">Watch Tutorial Video</div><div class="step-desc">Franchisor watches the platform tutorial to understand features and capabilities.</div><div class="step-tags"><span class="step-tag tag-platform">Platform</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 05</div><div class="step-title">Complete Onboarding Flow</div><div class="step-desc">Answers onboarding questions and provides company details. Upon completion, directed to the QualifIQ platform dashboard.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-action">Onboarding</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 2 — Lead Generation</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card decision"><div class="step-number">STEP 06 &middot; DECISION</div><div class="step-title">Choose Lead Generation Method</div><div class="step-desc">Franchisor selects one of two paths to generate leads: Campaigns or Cold Leads.</div><div class="step-tags"><span class="step-tag tag-decision">Decision Point</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 06A &middot; PATH A</div><div class="step-title">Run Social Media Campaigns</div><div class="step-desc">Access the Campaigns section to create and run social media campaigns to generate leads.</div><div class="step-tags"><span class="step-tag tag-action">Campaign</span><span class="step-tag tag-user">User Action</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 06B &middot; PATH B</div><div class="step-title">Browse Cold Leads</div><div class="step-desc">Navigate to Lead Generation &rarr; Cold Leads sub-section. Apply relevant filters to view cold leads.</div><div class="step-tags"><span class="step-tag tag-action">Lead Gen</span><span class="step-tag tag-user">User Action</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 3 — Vetting &amp; Qualification</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 07</div><div class="step-title">Vet Cold Leads</div><div class="step-desc">Navigate to Vetted Leads screen, click Vetting button. View vetted leads with tick marks and match scores. Click any lead to view their high-level profile.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-platform">AI Scoring</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 08</div><div class="step-title">Qualify Selected Leads</div><div class="step-desc">Select leads, click Qualify button, redirected to Qualified Leads (QL) sub-section. Platform triggers qualification emails to selected leads. Leads who reply become QLs.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-email">Email Trigger</span><span class="step-tag tag-platform">Platform</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 08A &middot; ALTERNATIVE</div><div class="step-title">Upload Campaign Respondents as QLs</div><div class="step-desc">Franchisor can manually upload leads who responded to campaigns into the QL sub-section, or the platform automatically adds campaign respondents as QLs.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-platform">Auto-import</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 4 — QL Engagement &amp; Discovery</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 09</div><div class="step-title">Direct QL to Short Form</div><div class="step-desc">Franchisor emails the QL, directing them to the short form on the Franchisor's website and asks them to fill it out.</div><div class="step-tags"><span class="step-tag tag-email">Email</span><span class="step-tag tag-user">User Action</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 10</div><div class="step-title">QL Completes Short Form &rarr; Notification</div><div class="step-desc">QL fills out the short form. Franchisor is notified. If responses are favorable, the system auto-sends an email to QL with a link to join QualifIQ and set up a Discovery Call.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Email</span><span class="step-tag tag-email">Notification</span><span class="step-tag tag-decision">Favorable?</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 11</div><div class="step-title">QL Joins Platform &rarr; Discovery Call</div><div class="step-desc">Franchisor is notified that QL has joined the platform. Discovery Call takes place between Franchisor and QL.</div><div class="step-tags"><span class="step-tag tag-email">Notification</span><span class="step-tag tag-action">Meeting</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card decision"><div class="step-number">STEP 12 &middot; DECISION</div><div class="step-title">Post-Discovery Call: Unlock Long Form</div><div class="step-desc">If Discovery Call goes well, Franchisor unlocks the long-form section for the QL on QualifIQ. QL is asked to upload documents for verification.</div><div class="step-tags"><span class="step-tag tag-decision">Decision Point</span><span class="step-tag tag-user">User Action</span><span class="step-tag tag-platform">Platform</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 5 — Verification, NDA &amp; FDD</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 13</div><div class="step-title">Document Verification</div><div class="step-desc">Franchisor verifies the QL's uploaded documents on the QualifIQ platform.</div><div class="step-tags"><span class="step-tag tag-user">User Action</span><span class="step-tag tag-decision">Verify</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 14</div><div class="step-title">NDA Initiation &amp; Signing</div><div class="step-desc">If Franchisor is convinced, QualifIQ platform initiates the NDA. QL is notified to sign the NDA on the platform.</div><div class="step-tags"><span class="step-tag tag-platform">Platform Trigger</span><span class="step-tag tag-email">Notification</span><span class="step-tag tag-action">NDA</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 15</div><div class="step-title">FDD Sent to QL</div><div class="step-desc">After NDA is signed, platform informs Franchisor and automatically sends FDD to QL for review with a 14-day grace period to review and sign.</div><div class="step-tags"><span class="step-tag tag-platform">Auto-send FDD</span><span class="step-tag tag-email">Notification</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 16</div><div class="step-title">FDD Discussion Call</div><div class="step-desc">Calendar is created for QL to schedule a call with the Franchisor to discuss the FDD.</div><div class="step-tags"><span class="step-tag tag-platform">Calendar</span><span class="step-tag tag-action">Meeting</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 17</div><div class="step-title">FDD Signing Reminders</div><div class="step-desc">Platform sends automated reminders on days 3, 7, 10, and 14. Platform informs Franchisor when QL signs the FDD.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Reminders</span><span class="step-tag tag-email">Days 3, 7, 10, 14</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 6 — Discovery Day &amp; Franchise Agreement</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 18</div><div class="step-title">Discovery Day Scheduling</div><div class="step-desc">When FDD is signed, platform auto-triggers a Discovery Day calendar for QL to pick an in-person meeting date or schedule a call with Franchisor to discuss next steps.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Trigger</span><span class="step-tag tag-action">Discovery Day</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card final-glow-franchisor"><div class="step-number">STEP 19 &middot; FINAL</div><div class="step-title">&#x1F389; Franchise Agreement Execution</div><div class="step-desc">After Discovery Day is completed and both parties are in agreement, the Franchisor uploads the Franchise Agreement document for QL to execute. Journey complete.</div><div class="step-tags"><span class="step-tag tag-user">Upload FA</span><span class="step-tag tag-action">Signed &#x2713;</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENCY JOURNEY -->
+<div class="journey-panel" id="panel-agency">
+  <div class="journey-header">
+    <div class="journey-icon" style="background:var(--agency-dim);">&#x1F91D;</div>
+    <div class="journey-meta">
+      <h2>Agency (Broker) Journey</h2>
+      <p>Franchisor to Lead to Sign — Agency acts on behalf of one or more Franchisors</p>
+    </div>
+  </div>
+  <div class="flow journey-agency">
+    <div class="phase-group">
+      <div class="phase-label">Phase 1 — Acquisition &amp; Onboarding</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 01</div><div class="step-title">Land on QualifIQ Website</div><div class="step-desc">Agency discovers QualifIQ, learns about the platform and reviews pricing plans.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 02</div><div class="step-title">Sign Up &amp; Authenticate</div><div class="step-desc">Clicks sign-up, directed to sign-up page. Authenticates via Email, Google, or LinkedIn.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-platform">Auth Flow</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 03</div><div class="step-title">Select Pricing Tier &amp; Payment</div><div class="step-desc">Prompted to select pricing tier. Completes payment. Redirected to tutorial video page.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-platform">Payment</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 04</div><div class="step-title">Watch Tutorial Video</div><div class="step-desc">Agency watches the platform tutorial to understand features and workflow.</div><div class="step-tags"><span class="step-tag tag-platform">Platform</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 05</div><div class="step-title">Agency Details &amp; Multi-Franchisor Onboarding</div><div class="step-desc">Agency provides their details first. Then selects the number of franchisors they represent. For each franchisor, they answer onboarding questions and provide the franchisor's company details. Upon completion, directed to the platform where they select the active franchisor.</div><div class="step-tags"><span class="step-tag tag-agency">Agency-Specific</span><span class="step-tag tag-action">Multi-Franchisor Setup</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 2 — Lead Generation (On Behalf of Franchisor)</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card decision"><div class="step-number">STEP 06 &middot; DECISION</div><div class="step-title">Choose Lead Generation Method</div><div class="step-desc">Agency selects one of two paths to generate leads on behalf of the Franchisor.</div><div class="step-tags"><span class="step-tag tag-decision">Decision Point</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 06A &middot; PATH A</div><div class="step-title">Run Social Media Campaigns</div><div class="step-desc">Access Campaigns section to run social media campaigns on behalf of the franchisor.</div><div class="step-tags"><span class="step-tag tag-action">Campaign</span><span class="step-tag tag-agency">On Behalf</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 06B &middot; PATH B</div><div class="step-title">Browse Cold Leads</div><div class="step-desc">Navigate to Lead Generation &rarr; Cold Leads sub-section. Apply relevant filters to view cold leads.</div><div class="step-tags"><span class="step-tag tag-action">Lead Gen</span><span class="step-tag tag-agency">Agency</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 3 — Vetting &amp; Qualification</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 07</div><div class="step-title">Vet Cold Leads</div><div class="step-desc">Navigate to Vetted Leads screen, click Vetting button. View vetted leads with tick marks and match scores. Click any lead to view their high-level profile.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-platform">AI Scoring</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 08</div><div class="step-title">Qualify Selected Leads</div><div class="step-desc">Select leads, click Qualify button, redirected to QL sub-section. Platform triggers qualification emails. Leads who reply become QLs.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-email">Email Trigger</span><span class="step-tag tag-platform">Platform</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 08A &middot; ALTERNATIVE</div><div class="step-title">Upload Campaign Respondents as QLs</div><div class="step-desc">Agency manually uploads campaign respondents or platform auto-adds them as QLs.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-platform">Auto-import</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 4 — QL Engagement &amp; Discovery</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 09</div><div class="step-title">Direct QL to Short Form</div><div class="step-desc">Agency emails QL on behalf of the Franchisor, directing them to the short form on the Franchisor's website.</div><div class="step-tags"><span class="step-tag tag-email">Email</span><span class="step-tag tag-agency">On Behalf</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 10</div><div class="step-title">QL Completes Short Form &rarr; Notification</div><div class="step-desc">QL fills short form. Agency is notified. If favorable, system auto-sends email to QL with link to join QualifIQ and set up Discovery Call with the Franchisor.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Email</span><span class="step-tag tag-email">Notification</span><span class="step-tag tag-decision">Favorable?</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 11</div><div class="step-title">QL Joins Platform &rarr; Discovery Call</div><div class="step-desc">Agency is notified that QL has joined. Discovery Call takes place between QL and Franchisor.</div><div class="step-tags"><span class="step-tag tag-email">Notification</span><span class="step-tag tag-action">Meeting</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card decision"><div class="step-number">STEP 12 &middot; DECISION</div><div class="step-title">Post-Discovery Call: Unlock Long Form</div><div class="step-desc">If Discovery Call goes well, Agency unlocks the long-form section for QL. QL is asked to upload documents for verification.</div><div class="step-tags"><span class="step-tag tag-decision">Decision Point</span><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-platform">Platform</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 5 — Verification, NDA &amp; FDD</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 13</div><div class="step-title">Document Verification</div><div class="step-desc">Agency verifies the QL's uploaded documents on the QualifIQ platform.</div><div class="step-tags"><span class="step-tag tag-agency">Agency</span><span class="step-tag tag-decision">Verify</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 14</div><div class="step-title">NDA Initiation &amp; Signing</div><div class="step-desc">If Agency is convinced, QualifIQ platform initiates NDA. QL is notified to sign NDA on platform.</div><div class="step-tags"><span class="step-tag tag-platform">Platform Trigger</span><span class="step-tag tag-email">Notification</span><span class="step-tag tag-action">NDA</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 15</div><div class="step-title">FDD Sent to QL</div><div class="step-desc">After NDA signed, platform informs Agency and auto-sends FDD to QL with 14-day grace period.</div><div class="step-tags"><span class="step-tag tag-platform">Auto-send FDD</span><span class="step-tag tag-email">Notification</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 16</div><div class="step-title">FDD Discussion Call</div><div class="step-desc">Calendar created for QL to schedule a call with the Franchisor to discuss the FDD.</div><div class="step-tags"><span class="step-tag tag-platform">Calendar</span><span class="step-tag tag-action">Meeting</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 17</div><div class="step-title">FDD Signing Reminders</div><div class="step-desc">Platform sends reminders on days 3, 7, 10, and 14. Platform informs Agency when QL signs FDD.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Reminders</span><span class="step-tag tag-email">Days 3, 7, 10, 14</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 6 — Discovery Day &amp; Franchise Agreement</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 18</div><div class="step-title">Discovery Day Scheduling</div><div class="step-desc">When FDD signed, platform auto-triggers Discovery Day calendar for QL to pick in-person meeting or schedule a call with Franchisor.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Trigger</span><span class="step-tag tag-action">Discovery Day</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card final-glow-agency"><div class="step-number">STEP 19 &middot; FINAL</div><div class="step-title">&#x1F389; Franchise Agreement Execution</div><div class="step-desc">After Discovery Day is completed and parties are in agreement, the Agency (on behalf of the Franchisor) uploads the Franchise Agreement for QL to execute. Journey complete.</div><div class="step-tags"><span class="step-tag tag-agency">Agency Uploads FA</span><span class="step-tag tag-action">Signed &#x2713;</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FRANCHISEE JOURNEY -->
+<div class="journey-panel" id="panel-franchisee">
+  <div class="journey-header">
+    <div class="journey-icon" style="background:var(--franchisee-dim);">&#x1F464;</div>
+    <div class="journey-meta">
+      <h2>Franchisee / QL Journey</h2>
+      <p>Franchisor to Lead to Sign — The prospective Franchisee's experience from invitation through agreement</p>
+    </div>
+  </div>
+  <div class="flow journey-franchisee">
+    <div class="phase-group">
+      <div class="phase-label">Phase 1 — Invitation &amp; Onboarding</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 01</div><div class="step-title">Receive Invitation Email</div><div class="step-desc">Franchisee (QL) receives an email from the Franchisor with a link to join the QualifIQ platform and set up a Discovery Call.</div><div class="step-tags"><span class="step-tag tag-email">Email Received</span><span class="step-tag tag-franchisee-tag">Franchisee</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 02</div><div class="step-title">Sign Up &amp; Authenticate</div><div class="step-desc">Franchisee (QL) signs up / logs in via Email, Google, or LinkedIn.</div><div class="step-tags"><span class="step-tag tag-franchisee-tag">Franchisee</span><span class="step-tag tag-platform">Auth Flow</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 03</div><div class="step-title">Watch Tutorial Video</div><div class="step-desc">Directed to tutorial video page. Watches tutorial to understand the platform.</div><div class="step-tags"><span class="step-tag tag-platform">Platform</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 04</div><div class="step-title">Complete Onboarding Flow</div><div class="step-desc">Answers onboarding questions and provides personal/company details. Upon completion, directed to the QualifIQ platform.</div><div class="step-tags"><span class="step-tag tag-franchisee-tag">Franchisee</span><span class="step-tag tag-action">Onboarding</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 05 &middot; OPTIONAL</div><div class="step-title">Upgrade: Optional Paid Plan</div><div class="step-desc">Shown optional pricing option for continued platform access beyond current flow, including AI features and marketplace access to discover other franchisors.</div><div class="step-tags"><span class="step-tag tag-platform">Upsell</span><span class="step-tag tag-decision">Optional</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 2 — Discovery Call &amp; Long Form</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 06</div><div class="step-title">Share Calendar &amp; Schedule Discovery Call</div><div class="step-desc">Franchisee shares calendar permissions. Receives and sees a meeting invite for the Discovery Call with the Franchisor.</div><div class="step-tags"><span class="step-tag tag-franchisee-tag">Franchisee</span><span class="step-tag tag-platform">Calendar</span><span class="step-tag tag-action">Meeting</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card decision"><div class="step-number">STEP 07 &middot; DECISION</div><div class="step-title">Post-Discovery Call: Long Form Unlocked</div><div class="step-desc">If Discovery Call goes well, the long-form section is unlocked on the platform. Franchisee can fill it out.</div><div class="step-tags"><span class="step-tag tag-decision">Decision Point</span><span class="step-tag tag-platform">Platform</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 08</div><div class="step-title">Upload Documents for Verification</div><div class="step-desc">Franchisee is asked to upload documents for verification on the QualifIQ platform.</div><div class="step-tags"><span class="step-tag tag-franchisee-tag">Franchisee</span><span class="step-tag tag-action">Upload</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 3 — NDA, FDD Review &amp; Signing</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 09</div><div class="step-title">NDA Notification &amp; Signing</div><div class="step-desc">After Franchisor verifies documents and approves, QualifIQ platform initiates NDA. Franchisee is notified to sign the NDA on the platform.</div><div class="step-tags"><span class="step-tag tag-platform">Platform Trigger</span><span class="step-tag tag-email">Notification</span><span class="step-tag tag-action">NDA</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 10</div><div class="step-title">Receive FDD for Review</div><div class="step-desc">After NDA signed, platform informs Franchisor and sends the FDD to Franchisee for review with a 14-day grace period to review and sign.</div><div class="step-tags"><span class="step-tag tag-platform">Auto-send FDD</span><span class="step-tag tag-franchisee-tag">14-Day Period</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card branch"><div class="step-number">STEP 11 &middot; OPTIONAL</div><div class="step-title">Upgrade: AI-Powered FDD Understanding</div><div class="step-desc">Franchisee is given the option to subscribe to a paid plan to use AI to help understand the FDD document.</div><div class="step-tags"><span class="step-tag tag-platform">Upsell</span><span class="step-tag tag-decision">Optional</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 12</div><div class="step-title">Schedule FDD Discussion Call</div><div class="step-desc">Franchisee is prompted to schedule a call with the Franchisor to discuss the FDD.</div><div class="step-tags"><span class="step-tag tag-franchisee-tag">Franchisee</span><span class="step-tag tag-platform">Calendar</span><span class="step-tag tag-action">Meeting</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 13</div><div class="step-title">FDD Signing Reminders</div><div class="step-desc">Platform sends reminders on days 3, 7, 10, and 14 for Franchisee to sign. Platform informs Franchisor upon signing.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Reminders</span><span class="step-tag tag-email">Days 3, 7, 10, 14</span></div></div></div>
+      </div>
+    </div>
+    <div class="phase-group">
+      <div class="phase-label">Phase 4 — Discovery Day &amp; Franchise Agreement</div>
+      <div class="phase-steps">
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card"><div class="step-number">STEP 14</div><div class="step-title">Discovery Day Scheduling</div><div class="step-desc">When FDD is signed, platform auto-triggers Discovery Day calendar for Franchisee to pick an in-person meeting or schedule a call with Franchisor.</div><div class="step-tags"><span class="step-tag tag-platform">Auto Trigger</span><span class="step-tag tag-action">Discovery Day</span></div></div></div>
+        <div class="step-row"><div class="step-connector"><div class="dot"></div><div class="line"></div></div><div class="step-card final-glow-franchisee"><div class="step-number">STEP 15 &middot; FINAL</div><div class="step-title">&#x1F389; Franchise Agreement Execution</div><div class="step-desc">After Discovery Day is completed and both parties agree, the Franchisor uploads the Franchise Agreement document for Franchisee to execute. Journey complete.</div><div class="step-tags"><span class="step-tag tag-franchisee-tag">Execute FA</span><span class="step-tag tag-action">Signed &#x2713;</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.journey-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab[data-tab="' + tabName + '"]').classList.add('active');
+  document.getElementById('panel-' + tabName).classList.add('active');
+}
+</script>
+</body>
+</html>
